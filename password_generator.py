@@ -6,6 +6,7 @@ import re
 import math
 from datetime import datetime
 from typing import Dict, List
+import urllib.parse
 
 # Initialize session state for user management
 if 'premium_user' not in st.session_state:
@@ -100,7 +101,7 @@ class PremiumFeatures:
     def upgrade_user(self, plan):
         st.session_state.premium_user = True
         st.session_state.user_plan = plan
-        st.session_state.password_count = 0  # Reset counter
+        st.session_state.password_count = 0
         
         # Enable premium features based on plan
         if plan in ["pro", "business", "enterprise"]:
@@ -116,9 +117,8 @@ class PremiumFeatures:
     
     def check_password_limit(self):
         if st.session_state.premium_user:
-            return True  # Unlimited for premium users
+            return True
         
-        # Free users limited to 5 passwords per day
         if st.session_state.password_count >= 5:
             return False
         return True
@@ -262,7 +262,6 @@ class AdvancedPasswordGenerator:
                          use_digits: bool, use_special: bool, exclude_similar: bool = False) -> str:
         """Generate password based on criteria"""
         
-        # Check password limit for free users
         if not self.premium.check_password_limit():
             return "LIMIT_REACHED"
         
@@ -280,7 +279,6 @@ class AdvancedPasswordGenerator:
         
         password = ''.join(secrets.choice(chars) for _ in range(length))
         
-        # Increment counter for free users
         if not st.session_state.premium_user:
             self.premium.increment_password_count()
         
@@ -289,7 +287,6 @@ class AdvancedPasswordGenerator:
     def generate_passphrase(self, word_count: int = 6, separator: str = "-") -> str:
         """Generate passphrase using word list"""
         
-        # Check password limit for free users
         if not self.premium.check_password_limit():
             return "LIMIT_REACHED"
         
@@ -303,7 +300,6 @@ class AdvancedPasswordGenerator:
         words = [secrets.choice(word_list) for _ in range(word_count)]
         password = separator.join(words)
         
-        # Increment counter for free users
         if not st.session_state.premium_user:
             self.premium.increment_password_count()
         
@@ -329,12 +325,19 @@ def check_password_breach(password: str) -> Dict:
             'severity': "low"
         }
 
+def optimize_font_loading():
+    """Optimize font loading to prevent warnings"""
+    st.markdown("""
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    """, unsafe_allow_html=True)
+
 def show_app_url():
     """Display app URL and sharing options"""
     st.sidebar.markdown("---")
     st.sidebar.header("🔗 Your App URL")
     
-    # Replace with your actual app URL
     app_url = "https://your-app-name.streamlit.app"
     
     st.sidebar.markdown(f"""
@@ -344,30 +347,31 @@ def show_app_url():
     ```
     """)
     
-    # Copy button
     if st.sidebar.button("📋 Copy URL", use_container_width=True):
         st.sidebar.success("✅ URL copied to clipboard!")
     
-    # QR code for easy mobile sharing
+    # Secure QR code implementation
     st.sidebar.markdown("**Mobile QR Code:**")
-    qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={app_url}"
-    st.sidebar.image(qr_url)
+    encoded_url = urllib.parse.quote(app_url)
+    qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={encoded_url}&format=png&ecc=L"
+    
+    st.sidebar.markdown(f'<img src="{qr_url}" alt="QR Code" style="border: 1px solid #e0e0e0; border-radius: 10px;">', unsafe_allow_html=True)
 
 def social_sharing():
     """Social media sharing options"""
     st.sidebar.markdown("---")
     st.sidebar.header("📤 Share Everywhere")
     
-    app_url = "https://your-app-name.streamlit.app"  # Replace with your actual URL
+    app_url = "https://your-app-name.streamlit.app"
     message = "Check out this awesome AI password generator!"
     
     platforms = {
-        "Twitter": f"https://twitter.com/intent/tweet?text={message}&url={app_url}",
-        "LinkedIn": f"https://www.linkedin.com/sharing/share-offsite/?url={app_url}",
-        "Facebook": f"https://www.facebook.com/sharer/sharer.php?u={app_url}",
-        "Reddit": f"https://reddit.com/submit?url={app_url}&title={message}",
-        "WhatsApp": f"https://wa.me/?text={message}%20{app_url}",
-        "Telegram": f"https://t.me/share/url?url={app_url}&text={message}"
+        "Twitter": f"https://twitter.com/intent/tweet?text={urllib.parse.quote(message)}&url={urllib.parse.quote(app_url)}",
+        "LinkedIn": f"https://www.linkedin.com/sharing/share-offsite/?url={urllib.parse.quote(app_url)}",
+        "Facebook": f"https://www.facebook.com/sharer/sharer.php?u={urllib.parse.quote(app_url)}",
+        "Reddit": f"https://reddit.com/submit?url={urllib.parse.quote(app_url)}&title={urllib.parse.quote(message)}",
+        "WhatsApp": f"https://wa.me/?text={urllib.parse.quote(message + ' ' + app_url)}",
+        "Telegram": f"https://t.me/share/url?url={urllib.parse.quote(app_url)}&text={urllib.parse.quote(message)}"
     }
     
     for platform, share_url in platforms.items():
@@ -473,7 +477,6 @@ def show_payment_section():
         for feature in plan_info['features']:
             st.markdown(f"✅ {feature}")
         
-        # Payment form
         with st.form("payment_form"):
             st.subheader("Billing Information")
             
@@ -492,38 +495,22 @@ def show_payment_section():
             with col3:
                 cvv = st.text_input("CVV", placeholder="123")
             
-            # Promo code
             promo_code = st.text_input("Promo Code (Optional)", placeholder="SUMMER2024")
             
-            # Terms acceptance
             agree = st.checkbox("I agree to the Terms of Service and Privacy Policy")
             
             if st.form_submit_button("🔥 Subscribe Now", use_container_width=True):
                 if not all([email, card_number, card_holder, exp_month, exp_year, cvv, agree]):
                     st.error("Please fill in all required fields and agree to the terms.")
                 else:
-                    # Simulate payment processing
                     with st.spinner("Processing payment..."):
                         import time
                         time.sleep(2)
                         
-                        # Upgrade user
                         premium.upgrade_user(plan)
                         st.success(f"🎉 Welcome to {plan.capitalize()} Tier!")
                         st.balloons()
                         st.session_state.show_payment = False
-                        
-                        # Show success message
-                        st.markdown(f"""
-                        ### 🎊 Upgrade Successful!
-                        
-                        You now have access to all **{plan.capitalize()}** features!
-                        
-                        **Next steps:**
-                        - Refresh the page to see premium features
-                        - Check your email for confirmation
-                        - Start using advanced tools immediately
-                        """)
     
     with col2:
         st.markdown("""
@@ -536,10 +523,6 @@ def show_payment_section():
             
             <h4>🔄 Easy Cancellation</h4>
             <p>Cancel anytime from your account settings.</p>
-            
-            <div style='text-align: center; margin-top: 20px;'>
-                <p><small>Secure Payment Processing</small></p>
-            </div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -558,8 +541,6 @@ def show_affiliate_section():
     - **NordVPN** - Secure browsing
     - **Malwarebytes** - Virus protection
     - **Bitwarden** - Open source solution
-    
-    *We earn commission from these recommendations*
     """)
 
 def show_beautiful_header():
@@ -622,7 +603,6 @@ def show_beautiful_header():
     </div>
     """, unsafe_allow_html=True)
     
-    # Premium badge if user is premium
     if st.session_state.premium_user:
         st.markdown(f"""
         <div style='
@@ -648,56 +628,34 @@ def main():
         initial_sidebar_state="collapsed"
     )
     
-    # ========== SEO META TAGS ==========
+    # ========== OPTIMIZED META TAGS ==========
     st.markdown("""
-    <head>
-        <title>AI Password Generator Pro - Free Online Secure Password Tool</title>
-        <meta name="description" content="Free AI-powered password generator with advanced security analysis. Create strong, secure passwords instantly with real-time strength checking. No installation required.">
-        <meta name="keywords" content="password generator, secure passwords, free password tool, online password generator, cybersecurity, AI password generator">
-        <meta name="author" content="Password Generator Pro">
-        <link rel="canonical" href="https://your-app-name.streamlit.app/">
-    </head>
+    <!-- Primary Meta Tags -->
+    <title>AI Password Generator Pro - Create Secure Passwords Instantly</title>
+    <meta name="description" content="Free AI-powered password generator with advanced security analysis. Create strong, secure passwords with real-time strength checking.">
+    <meta name="keywords" content="password generator, secure passwords, AI password, password strength, cybersecurity">
+    <meta name="author" content="Password Generator Pro">
     """, unsafe_allow_html=True)
 
-    # ========== STRUCTURED DATA ==========
-    st.markdown("""
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "AI Password Generator Pro",
-      "applicationCategory": "SecurityApplication",
-      "operatingSystem": "Web Browser",
-      "description": "Free AI-powered password generator with advanced security analysis",
-      "url": "https://your-app-name.streamlit.app/",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "USD"
-      }
-    }
-    </script>
-    """, unsafe_allow_html=True)
-
-    # ========== CUSTOM CSS ==========
+    # ========== OPTIMIZED CSS ==========
     st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-    
+
     * {
         font-family: 'Inter', sans-serif;
     }
-    
+
     /* Remove Streamlit default elements */
     .stDeployButton { display: none !important; }
     #MainMenu { visibility: hidden !important; }
     footer { visibility: hidden !important; }
     header { visibility: hidden !important; }
-    
+
     .main .block-container {
         padding-top: 0;
     }
-    
+
     .password-display {
         background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
         padding: 25px;
@@ -710,7 +668,7 @@ def main():
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         word-break: break-all;
     }
-    
+
     .feature-card {
         padding: 25px;
         border-radius: 15px;
@@ -720,11 +678,11 @@ def main():
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         transition: transform 0.3s ease;
     }
-    
+
     .feature-card:hover {
         transform: translateY(-2px);
     }
-    
+
     .stButton button {
         border-radius: 10px;
         height: 50px;
@@ -732,17 +690,17 @@ def main():
         border: none;
         transition: all 0.3s ease;
     }
-    
+
     .stButton button:hover {
         transform: translateY(-1px);
         box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
     }
-    
+
     /* Tab styling */
     .stTabs [data-baseweb="tab-list"] {
         gap: 2px;
     }
-    
+
     .stTabs [data-baseweb="tab"] {
         height: 50px;
         white-space: pre-wrap;
@@ -752,12 +710,12 @@ def main():
         padding-top: 10px;
         padding-bottom: 10px;
     }
-    
+
     .stTabs [aria-selected="true"] {
         background-color: #667eea;
         color: white;
     }
-    
+
     /* Mobile responsiveness */
     @media (max-width: 768px) {
         .password-display {
@@ -770,17 +728,20 @@ def main():
     }
     </style>
     """, unsafe_allow_html=True)
-    
+
+    # ========== FONT OPTIMIZATION ==========
+    optimize_font_loading()
+
     # Show payment section if needed
     if st.session_state.show_payment:
         show_payment_section()
         return
-    
+
     # Show pricing if user wants to upgrade
     if st.session_state.show_pricing:
         show_premium_pricing()
         return
-    
+
     # ========== BEAUTIFUL HEADER ==========
     show_beautiful_header()
     
@@ -790,7 +751,6 @@ def main():
     
     # ========== SIDEBAR CONTENT ==========
     with st.sidebar:
-        # User status section
         if not st.session_state.premium_user:
             st.markdown("""
             <div style='
@@ -809,7 +769,6 @@ def main():
             if st.button("⭐ Upgrade Now", use_container_width=True, type="primary"):
                 st.session_state.show_pricing = True
         
-        # Password counter for free users
         if not st.session_state.premium_user:
             st.markdown(f"""
             <div style='
@@ -825,7 +784,6 @@ def main():
             </div>
             """, unsafe_allow_html=True)
         
-        # App URL and sharing
         show_app_url()
         social_sharing()
         show_affiliate_section()
@@ -833,7 +791,6 @@ def main():
     # ========== MAIN CONTENT - PASSWORD GENERATION TABS ==========
     st.markdown("---")
     
-    # Password type selection as tabs
     tab1, tab2, tab3, tab4 = st.tabs(["🔧 Random Password", "🧠 Memorable Password", "📖 Passphrase", "🤖 AI Smart Generator"])
     
     with tab1:
@@ -842,15 +799,13 @@ def main():
         
         col1a, col1b = st.columns(2)
         with col1a:
-            length = st.slider("Password Length", 8, 64, 16, key="random_length", 
-                             help="Longer passwords are more secure. 12+ characters recommended.")
+            length = st.slider("Password Length", 8, 64, 16, key="random_length")
             use_upper = st.checkbox("Uppercase Letters (A-Z)", True, key="random_upper")
             use_lower = st.checkbox("Lowercase Letters (a-z)", True, key="random_lower")
         with col1b:
             use_digits = st.checkbox("Digits (0-9)", True, key="random_digits")
             use_special = st.checkbox("Special Characters (!@#$)", True, key="random_special")
-            exclude_similar = st.checkbox("Exclude Similar Characters (l, I, 1, 0, O)", False, key="random_similar",
-                                        help="Exclude characters that look similar to avoid confusion")
+            exclude_similar = st.checkbox("Exclude Similar Characters (l, I, 1, 0, O)", False, key="random_similar")
         
         if st.button("🎯 Generate Random Password", type="primary", key="random_btn", use_container_width=True):
             password = advanced_gen.generate_password(
@@ -869,8 +824,7 @@ def main():
         st.header("🧠 Memorable Password Generator")
         st.markdown("Create passwords that are easy to remember but hard to guess")
         
-        word_count = st.slider("Number of Words", 3, 8, 4, key="memorable_words",
-                             help="More words = more secure but harder to remember")
+        word_count = st.slider("Number of Words", 3, 8, 4, key="memorable_words")
         
         if st.button("🧠 Generate Memorable Password", key="memorable_btn", use_container_width=True):
             password = advanced_gen.ai_generator.generate_memorable_password(word_count)
@@ -887,10 +841,8 @@ def main():
         st.header("📖 Passphrase Generator")
         st.markdown("Generate secure passphrases using random words")
         
-        word_count = st.slider("Number of Words", 4, 10, 6, key="passphrase_words",
-                             help="Passphrases with 6+ words are very secure")
-        separator = st.selectbox("Word Separator", ["-", "_", ".", " ", ""], key="passphrase_sep",
-                               help="Choose how words are separated in your passphrase")
+        word_count = st.slider("Number of Words", 4, 10, 6, key="passphrase_words")
+        separator = st.selectbox("Word Separator", ["-", "_", ".", " ", ""], key="passphrase_sep")
         
         if st.button("📖 Generate Passphrase", key="passphrase_btn", use_container_width=True):
             password = advanced_gen.generate_passphrase(word_count, separator)
@@ -915,7 +867,6 @@ def main():
                 advanced_gen.generate_passphrase(5, "-") + str(secrets.randbelow(100))
             ]
             
-            # Check for limit reached
             if any(sug == "LIMIT_REACHED" for sug in suggestions):
                 st.error("🚫 You've reached your daily limit of 5 passwords. Upgrade to Premium for unlimited access!")
                 st.session_state.show_pricing = True
@@ -948,7 +899,6 @@ def main():
                 st.success("✅ Password copied to clipboard!")
         with col_refresh:
             if st.button("🔄 Generate New", key="refresh_btn", use_container_width=True):
-                # Clear the current password
                 if 'generated_password' in st.session_state:
                     del st.session_state.generated_password
                 st.rerun()
@@ -970,7 +920,6 @@ def main():
         
         password = st.session_state.generated_password
         
-        # AI Strength Analysis
         analysis = advanced_gen.ai_generator.analyze_password_strength(password)
         
         col_analysis1, col_analysis2, col_analysis3 = st.columns(3)
@@ -990,7 +939,6 @@ def main():
             st.metric("Entropy Bits", f"{analysis['entropy']:.1f}")
             st.markdown('</div>', unsafe_allow_html=True)
         
-        # Feedback and breach check
         col_feedback, col_breach = st.columns(2)
         
         with col_feedback:
@@ -1144,7 +1092,7 @@ def main():
     4. **Use unique passwords** for each account
     5. **Enable two-factor authentication** when available
     
-    Our **free password generator tool** helps you create **strong, secure passwords** that protect your online accounts from hackers and brute force attacks. Unlike basic password generators, we provide enterprise-level security analysis to ensure your passwords meet modern security standards.
+    Our **free password generator tool** helps you create **strong, secure passwords** that protect your online accounts from hackers and brute force attacks.
     """)
     
     # ========== FOOTER SECTION ==========
