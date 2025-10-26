@@ -935,4 +935,20 @@ def main():
     """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
+    # Add this to your app to enable "Add to Home Screen"
+st.markdown("""
+<script>
+// Enable PWA-like features
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js');
+    });
+}
+</script>
+
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+""", unsafe_allow_html=True)
+
     main()
