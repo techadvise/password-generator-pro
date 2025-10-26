@@ -4,9 +4,8 @@ import string
 import secrets
 import re
 import math
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Dict, List
-import json
 
 # Initialize session state for user management
 if 'premium_user' not in st.session_state:
@@ -17,6 +16,8 @@ if 'password_count' not in st.session_state:
     st.session_state.password_count = 0
 if 'show_payment' not in st.session_state:
     st.session_state.show_payment = False
+if 'show_pricing' not in st.session_state:
+    st.session_state.show_pricing = False
 if 'premium_features' not in st.session_state:
     st.session_state.premium_features = {
         'bulk_generation': False,
@@ -25,6 +26,12 @@ if 'premium_features' not in st.session_state:
         'api_access': False,
         'priority_support': False
     }
+if 'generated_password' not in st.session_state:
+    st.session_state.generated_password = None
+if 'password_type' not in st.session_state:
+    st.session_state.password_type = "Random"
+if 'selected_plan' not in st.session_state:
+    st.session_state.selected_plan = "pro"
 
 class PremiumFeatures:
     def __init__(self):
@@ -316,6 +323,50 @@ def check_password_breach(password: str) -> Dict:
             'severity': "low"
         }
 
+def show_app_url():
+    """Display app URL and sharing options"""
+    st.sidebar.markdown("---")
+    st.sidebar.header("🔗 Your App URL")
+    
+    # Replace with your actual app URL
+    app_url = "https://your-app-name.streamlit.app"
+    
+    st.sidebar.markdown(f"""
+    **Your app is live at:**
+    ```
+    {app_url}
+    ```
+    """)
+    
+    # Copy button
+    if st.sidebar.button("📋 Copy URL", use_container_width=True):
+        st.sidebar.success("✅ URL copied to clipboard!")
+    
+    # QR code for easy mobile sharing
+    st.sidebar.markdown("**Mobile QR Code:**")
+    qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={app_url}"
+    st.sidebar.image(qr_url)
+
+def social_sharing():
+    """Social media sharing options"""
+    st.sidebar.markdown("---")
+    st.sidebar.header("📤 Share Everywhere")
+    
+    app_url = "https://your-app-name.streamlit.app"  # Replace with your actual URL
+    message = "Check out this awesome AI password generator!"
+    
+    platforms = {
+        "Twitter": f"https://twitter.com/intent/tweet?text={message}&url={app_url}",
+        "LinkedIn": f"https://www.linkedin.com/sharing/share-offsite/?url={app_url}",
+        "Facebook": f"https://www.facebook.com/sharer/sharer.php?u={app_url}",
+        "Reddit": f"https://reddit.com/submit?url={app_url}&title={message}",
+        "WhatsApp": f"https://wa.me/?text={message}%20{app_url}",
+        "Telegram": f"https://t.me/share/url?url={app_url}&text={message}"
+    }
+    
+    for platform, share_url in platforms.items():
+        st.sidebar.markdown(f"[{platform}]({share_url})")
+
 def show_premium_pricing():
     """Show premium pricing plans"""
     st.markdown("---")
@@ -447,7 +498,6 @@ def show_payment_section():
                 else:
                     # Simulate payment processing
                     with st.spinner("Processing payment..."):
-                        # In real implementation, integrate with Stripe here
                         import time
                         time.sleep(2)
                         
@@ -482,8 +532,7 @@ def show_payment_section():
             <p>Cancel anytime from your account settings.</p>
             
             <div style='text-align: center; margin-top: 20px;'>
-                <img src='https://upload.wikimedia.org/wikipedia/commons/b/b7/Stripe_Logo%2C_revised_2016.svg' width='100'>
-                <p><small>Powered by Stripe</small></p>
+                <p><small>Secure Payment Processing</small></p>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -514,10 +563,6 @@ def main():
         layout="wide",
         initial_sidebar_state="collapsed"
     )
-    
-    # Initialize session states
-    if 'selected_plan' not in st.session_state:
-        st.session_state.selected_plan = "pro"
     
     # Modern CSS with monetization elements
     st.markdown("""
@@ -589,6 +634,20 @@ def main():
         height: 50px;
         font-weight: 600;
     }
+    
+    /* Mobile responsiveness */
+    @media (max-width: 768px) {
+        .main-header {
+            font-size: 2rem;
+        }
+        .password-display {
+            font-size: 1.1rem;
+            padding: 20px;
+        }
+        .feature-card {
+            padding: 20px;
+        }
+    }
     </style>
     """, unsafe_allow_html=True)
     
@@ -600,7 +659,17 @@ def main():
         if st.session_state.premium_user:
             st.markdown(f'<div class="premium-badge" style="text-align: center;">⭐ PREMIUM USER - {st.session_state.user_plan.upper()} PLAN</div>', unsafe_allow_html=True)
         else:
-            st.markdown('<p class="sub-header" style="text-align: center;">Generate secure, AI-powered passwords • <strong>Free tier: 5 passwords/day</strong></p>', unsafe_allow_html=True)
+            st.markdown('<p style="text-align: center; color: #666; margin-bottom: 2rem;">Generate secure, AI-powered passwords • <strong>Free tier: 5 passwords/day</strong></p>', unsafe_allow_html=True)
+    
+    # Show payment section if needed
+    if st.session_state.show_payment:
+        show_payment_section()
+        return
+    
+    # Show pricing if user wants to upgrade
+    if st.session_state.show_pricing:
+        show_premium_pricing()
+        return
     
     # Initialize generators
     advanced_gen = AdvancedPasswordGenerator()
@@ -617,7 +686,7 @@ def main():
             """, unsafe_allow_html=True)
             
             if st.button("⭐ Upgrade Now", use_container_width=True, type="primary"):
-                st.session_state.show_payment = True
+                st.session_state.show_pricing = True
         
         # Password counter for free users
         if not st.session_state.premium_user:
@@ -629,18 +698,10 @@ def main():
             </div>
             """, unsafe_allow_html=True)
         
-        # Affiliate section
+        # App URL and sharing
+        show_app_url()
+        social_sharing()
         show_affiliate_section()
-    
-    # Show payment section if needed
-    if st.session_state.show_payment:
-        show_payment_section()
-        return
-    
-    # Show pricing if user wants to upgrade
-    if st.session_state.get('show_pricing', False):
-        show_premium_pricing()
-        return
     
     # Main app content
     st.markdown("---")
@@ -935,80 +996,4 @@ def main():
     """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
-    # Add this to your app to enable "Add to Home Screen"
-st.markdown("""
-<script>
-// Enable PWA-like features
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function() {
-        navigator.serviceWorker.register('/sw.js');
-    });
-}
-</script>
-
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-""", unsafe_allow_html=True)
-
     main()
-def show_app_url():
-    st.sidebar.markdown("---")
-    st.sidebar.header("🔗 Your App URL")
-    
-    # REPLACE THIS WITH YOUR ACTUAL APP URL
-    app_url = "https://your-actual-app-name.streamlit.app"
-    
-    st.sidebar.markdown(f"""
-    **Your app is live at:**
-    ```
-    {app_url}
-    ```
-    """)
-    
-    # Copy button
-    if st.sidebar.button("📋 Copy URL", use_container_width=True):
-        st.sidebar.success("✅ URL copied to clipboard!")
-    
-    # QR code for easy mobile sharing
-    st.sidebar.markdown("**Mobile QR Code:**")
-    qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={app_url}"
-    st.sidebar.image(qr_url)
-
-def social_sharing():
-    st.sidebar.markdown("---")
-    st.sidebar.header("📤 Share Everywhere")
-    
-    app_url = "https://your-actual-app-name.streamlit.app"  # REPLACE THIS
-    message = "Check out this awesome AI password generator!"
-    
-    platforms = {
-        "Twitter": f"https://twitter.com/intent/tweet?text={message}&url={app_url}",
-        "LinkedIn": f"https://www.linkedin.com/sharing/share-offsite/?url={app_url}",
-        "Facebook": f"https://www.facebook.com/sharer/sharer.php?u={app_url}",
-        "Reddit": f"https://reddit.com/submit?url={app_url}&title={message}",
-        "WhatsApp": f"https://wa.me/?text={message}%20{app_url}",
-        "Telegram": f"https://t.me/share/url?url={app_url}&text={message}"
-    }
-    
-    for platform, share_url in platforms.items():
-        st.sidebar.markdown(f"[{platform}]({share_url})")
-
-def generate_qr_code():
-    app_url = "https://your-actual-app-name.streamlit.app"  # REPLACE THIS
-    qr_code_url = f"https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={app_url}"
-    
-    st.sidebar.markdown("---")
-    st.sidebar.header("📱 Mobile QR Code")
-    st.sidebar.image(qr_code_url, caption="Scan to open on mobile")
-    st.sidebar.write("**Perfect for:**")
-    st.sidebar.write("• Sharing in person")
-    st.sidebar.write("• Presentations")
-    st.sidebar.write("• Business cards")
-    st.sidebar.write("• Posters")
-
-# Call these functions in your main app
-show_app_url()
-social_sharing() 
-generate_qr_code()
-    
