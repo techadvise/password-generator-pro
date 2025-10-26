@@ -952,13 +952,12 @@ if ('serviceWorker' in navigator) {
 """, unsafe_allow_html=True)
 
     main()
-# Add this to your app to show the URL
 def show_app_url():
     st.sidebar.markdown("---")
     st.sidebar.header("🔗 Your App URL")
     
-    # This is your actual app URL
-    app_url = "https://your-app-name.streamlit.app"
+    # REPLACE THIS WITH YOUR ACTUAL APP URL
+    app_url = "https://your-actual-app-name.streamlit.app"
     
     st.sidebar.markdown(f"""
     **Your app is live at:**
@@ -976,6 +975,40 @@ def show_app_url():
     qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={app_url}"
     st.sidebar.image(qr_url)
 
-# Call this function in your main app
-show_app_url()
+def social_sharing():
+    st.sidebar.markdown("---")
+    st.sidebar.header("📤 Share Everywhere")
+    
+    app_url = "https://your-actual-app-name.streamlit.app"  # REPLACE THIS
+    message = "Check out this awesome AI password generator!"
+    
+    platforms = {
+        "Twitter": f"https://twitter.com/intent/tweet?text={message}&url={app_url}",
+        "LinkedIn": f"https://www.linkedin.com/sharing/share-offsite/?url={app_url}",
+        "Facebook": f"https://www.facebook.com/sharer/sharer.php?u={app_url}",
+        "Reddit": f"https://reddit.com/submit?url={app_url}&title={message}",
+        "WhatsApp": f"https://wa.me/?text={message}%20{app_url}",
+        "Telegram": f"https://t.me/share/url?url={app_url}&text={message}"
+    }
+    
+    for platform, share_url in platforms.items():
+        st.sidebar.markdown(f"[{platform}]({share_url})")
 
+def generate_qr_code():
+    app_url = "https://your-actual-app-name.streamlit.app"  # REPLACE THIS
+    qr_code_url = f"https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={app_url}"
+    
+    st.sidebar.markdown("---")
+    st.sidebar.header("📱 Mobile QR Code")
+    st.sidebar.image(qr_code_url, caption="Scan to open on mobile")
+    st.sidebar.write("**Perfect for:**")
+    st.sidebar.write("• Sharing in person")
+    st.sidebar.write("• Presentations")
+    st.sidebar.write("• Business cards")
+    st.sidebar.write("• Posters")
+
+# Call these functions in your main app
+show_app_url()
+social_sharing() 
+generate_qr_code()
+    
