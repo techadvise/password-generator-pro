@@ -32,6 +32,12 @@ if 'password_type' not in st.session_state:
     st.session_state.password_type = "Random"
 if 'selected_plan' not in st.session_state:
     st.session_state.selected_plan = "pro"
+if 'password_history' not in st.session_state:
+    st.session_state.password_history = []
+if 'ai_suggestions' not in st.session_state:
+    st.session_state.ai_suggestions = []
+if 'bulk_passwords' not in st.session_state:
+    st.session_state.bulk_passwords = []
 
 class PremiumFeatures:
     def __init__(self):
@@ -556,18 +562,127 @@ def show_affiliate_section():
     *We earn commission from these recommendations*
     """)
 
+def show_beautiful_header():
+    """Create a beautiful gradient header"""
+    st.markdown("""
+    <div style='
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 3rem 1rem;
+        border-radius: 0 0 20px 20px;
+        text-align: center;
+        color: white;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    '>
+        <h1 style='
+            font-size: 3.5rem;
+            margin: 0;
+            font-weight: 800;
+            background: linear-gradient(45deg, #ffffff, #f0f0f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        '>🔐 AI Password Generator Pro</h1>
+        <p style='
+            font-size: 1.3rem;
+            margin: 0.5rem 0 0 0;
+            opacity: 0.9;
+            font-weight: 300;
+        '>Create Ultra-Secure Passwords with AI-Powered Analysis</p>
+        
+        <div style='
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        '>
+            <span style='
+                background: rgba(255,255,255,0.2);
+                padding: 0.5rem 1rem;
+                border-radius: 25px;
+                font-size: 0.9rem;
+                backdrop-filter: blur(10px);
+            '>🎯 Free Tier Available</span>
+            <span style='
+                background: rgba(255,255,255,0.2);
+                padding: 0.5rem 1rem;
+                border-radius: 25px;
+                font-size: 0.9rem;
+                backdrop-filter: blur(10px);
+            '>🤖 AI-Powered Analysis</span>
+            <span style='
+                background: rgba(255,255,255,0.2);
+                padding: 0.5rem 1rem;
+                border-radius: 25px;
+                font-size: 0.9rem;
+                backdrop-filter: blur(10px);
+            '>🔒 Military-Grade Security</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Premium badge if user is premium
+    if st.session_state.premium_user:
+        st.markdown(f"""
+        <div style='
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-align: center;
+            margin: -1rem auto 2rem auto;
+            width: fit-content;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+        '>
+            ⭐ PREMIUM USER - {st.session_state.user_plan.upper()} PLAN
+        </div>
+        """, unsafe_allow_html=True)
+
 def main():
     st.set_page_config(
-        page_title="AI Password Generator Pro",
+        page_title="AI Password Generator Pro - Free Online Secure Password Tool",
         page_icon="🔐",
         layout="wide",
         initial_sidebar_state="collapsed"
     )
     
-    # Modern CSS with monetization elements
+    # ========== SEO META TAGS ==========
+    st.markdown("""
+    <head>
+        <title>AI Password Generator Pro - Free Online Secure Password Tool</title>
+        <meta name="description" content="Free AI-powered password generator with advanced security analysis. Create strong, secure passwords instantly with real-time strength checking. No installation required.">
+        <meta name="keywords" content="password generator, secure passwords, free password tool, online password generator, cybersecurity, AI password generator">
+        <meta name="author" content="Password Generator Pro">
+        <link rel="canonical" href="https://your-app-name.streamlit.app/">
+    </head>
+    """, unsafe_allow_html=True)
+
+    # ========== STRUCTURED DATA ==========
+    st.markdown("""
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "AI Password Generator Pro",
+      "applicationCategory": "SecurityApplication",
+      "operatingSystem": "Web Browser",
+      "description": "Free AI-powered password generator with advanced security analysis",
+      "url": "https://your-app-name.streamlit.app/",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+    </script>
+    """, unsafe_allow_html=True)
+
+    # ========== CUSTOM CSS ==========
     st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
     
     * {
         font-family: 'Inter', sans-serif;
@@ -579,32 +694,8 @@ def main():
     footer { visibility: hidden !important; }
     header { visibility: hidden !important; }
     
-    .main-header {
-        font-size: 2.5rem;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        text-align: center;
-        margin-bottom: 1rem;
-        font-weight: 700;
-    }
-    
-    .premium-badge {
-        background: linear-gradient(135deg, #FFD700, #FFA500);
-        color: white;
-        padding: 5px 15px;
-        border-radius: 20px;
-        font-weight: bold;
-        font-size: 0.8rem;
-    }
-    
-    .free-limit {
-        background: linear-gradient(135deg, #ff6b6b, #ee5a52);
-        color: white;
-        padding: 10px;
-        border-radius: 10px;
-        text-align: center;
-        margin: 10px 0;
+    .main .block-container {
+        padding-top: 0;
     }
     
     .password-display {
@@ -627,19 +718,48 @@ def main():
         margin: 15px 0;
         border-left: 5px solid #667eea;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-2px);
     }
     
     .stButton button {
         border-radius: 10px;
         height: 50px;
         font-weight: 600;
+        border: none;
+        transition: all 0.3s ease;
+    }
+    
+    .stButton button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    /* Tab styling */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 2px;
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        height: 50px;
+        white-space: pre-wrap;
+        background-color: #f0f2f6;
+        border-radius: 10px 10px 0 0;
+        gap: 1px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+    
+    .stTabs [aria-selected="true"] {
+        background-color: #667eea;
+        color: white;
     }
     
     /* Mobile responsiveness */
     @media (max-width: 768px) {
-        .main-header {
-            font-size: 2rem;
-        }
         .password-display {
             font-size: 1.1rem;
             padding: 20px;
@@ -651,16 +771,6 @@ def main():
     </style>
     """, unsafe_allow_html=True)
     
-    # Header with premium status
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        st.markdown('<h1 class="main-header">🔐 AI Password Generator Pro</h1>', unsafe_allow_html=True)
-        
-        if st.session_state.premium_user:
-            st.markdown(f'<div class="premium-badge" style="text-align: center;">⭐ PREMIUM USER - {st.session_state.user_plan.upper()} PLAN</div>', unsafe_allow_html=True)
-        else:
-            st.markdown('<p style="text-align: center; color: #666; margin-bottom: 2rem;">Generate secure, AI-powered passwords • <strong>Free tier: 5 passwords/day</strong></p>', unsafe_allow_html=True)
-    
     # Show payment section if needed
     if st.session_state.show_payment:
         show_payment_section()
@@ -671,15 +781,26 @@ def main():
         show_premium_pricing()
         return
     
+    # ========== BEAUTIFUL HEADER ==========
+    show_beautiful_header()
+    
     # Initialize generators
     advanced_gen = AdvancedPasswordGenerator()
     premium = PremiumFeatures()
     
-    # Sidebar with upgrade prompt
+    # ========== SIDEBAR CONTENT ==========
     with st.sidebar:
+        # User status section
         if not st.session_state.premium_user:
             st.markdown("""
-            <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; text-align: center;'>
+            <div style='
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                color: white; 
+                padding: 20px; 
+                border-radius: 10px; 
+                text-align: center;
+                margin-bottom: 1rem;
+            '>
                 <h3>🚀 Upgrade to Premium</h3>
                 <p>Unlock unlimited passwords and advanced features!</p>
             </div>
@@ -691,10 +812,16 @@ def main():
         # Password counter for free users
         if not st.session_state.premium_user:
             st.markdown(f"""
-            <div style='background: #f8f9fa; padding: 15px; border-radius: 10px; text-align: center;'>
+            <div style='
+                background: #f8f9fa; 
+                padding: 15px; 
+                border-radius: 10px; 
+                text-align: center;
+                margin-bottom: 1rem;
+            '>
                 <h4>📊 Usage Today</h4>
-                <h3>{st.session_state.password_count}/5</h3>
-                <p>passwords generated</p>
+                <h3 style='color: #667eea; margin: 0;'>{st.session_state.password_count}/5</h3>
+                <p style='margin: 0;'>passwords generated</p>
             </div>
             """, unsafe_allow_html=True)
         
@@ -703,25 +830,29 @@ def main():
         social_sharing()
         show_affiliate_section()
     
-    # Main app content
+    # ========== MAIN CONTENT - PASSWORD GENERATION TABS ==========
     st.markdown("---")
     
     # Password type selection as tabs
-    tab1, tab2, tab3, tab4 = st.tabs(["🔧 Random", "🧠 Memorable", "📖 Passphrase", "🤖 AI Smart"])
+    tab1, tab2, tab3, tab4 = st.tabs(["🔧 Random Password", "🧠 Memorable Password", "📖 Passphrase", "🤖 AI Smart Generator"])
     
     with tab1:
-        st.header("Random Password Generator")
+        st.header("🎯 Random Password Generator")
+        st.markdown("Create completely random passwords with maximum security")
+        
         col1a, col1b = st.columns(2)
         with col1a:
-            length = st.slider("Password Length", 8, 64, 16, key="random_length")
-            use_upper = st.checkbox("Uppercase Letters", True, key="random_upper")
-            use_lower = st.checkbox("Lowercase Letters", True, key="random_lower")
+            length = st.slider("Password Length", 8, 64, 16, key="random_length", 
+                             help="Longer passwords are more secure. 12+ characters recommended.")
+            use_upper = st.checkbox("Uppercase Letters (A-Z)", True, key="random_upper")
+            use_lower = st.checkbox("Lowercase Letters (a-z)", True, key="random_lower")
         with col1b:
-            use_digits = st.checkbox("Digits", True, key="random_digits")
-            use_special = st.checkbox("Special Characters", True, key="random_special")
-            exclude_similar = st.checkbox("Exclude Similar Characters", False, key="random_similar")
+            use_digits = st.checkbox("Digits (0-9)", True, key="random_digits")
+            use_special = st.checkbox("Special Characters (!@#$)", True, key="random_special")
+            exclude_similar = st.checkbox("Exclude Similar Characters (l, I, 1, 0, O)", False, key="random_similar",
+                                        help="Exclude characters that look similar to avoid confusion")
         
-        if st.button("Generate Random Password", type="primary", key="random_btn"):
+        if st.button("🎯 Generate Random Password", type="primary", key="random_btn", use_container_width=True):
             password = advanced_gen.generate_password(
                 length, use_upper, use_lower, use_digits, use_special, exclude_similar
             )
@@ -735,9 +866,13 @@ def main():
                 st.session_state.password_type = "Random"
     
     with tab2:
-        st.header("Memorable Password Generator")
-        word_count = st.slider("Number of Words", 3, 8, 4, key="memorable_words")
-        if st.button("Generate Memorable Password", key="memorable_btn"):
+        st.header("🧠 Memorable Password Generator")
+        st.markdown("Create passwords that are easy to remember but hard to guess")
+        
+        word_count = st.slider("Number of Words", 3, 8, 4, key="memorable_words",
+                             help="More words = more secure but harder to remember")
+        
+        if st.button("🧠 Generate Memorable Password", key="memorable_btn", use_container_width=True):
             password = advanced_gen.ai_generator.generate_memorable_password(word_count)
             
             if password == "LIMIT_REACHED":
@@ -749,10 +884,15 @@ def main():
                 st.session_state.password_type = "Memorable"
     
     with tab3:
-        st.header("Passphrase Generator")
-        word_count = st.slider("Number of Words", 4, 10, 6, key="passphrase_words")
-        separator = st.selectbox("Separator", ["-", "_", ".", " ", ""], key="passphrase_sep")
-        if st.button("Generate Passphrase", key="passphrase_btn"):
+        st.header("📖 Passphrase Generator")
+        st.markdown("Generate secure passphrases using random words")
+        
+        word_count = st.slider("Number of Words", 4, 10, 6, key="passphrase_words",
+                             help="Passphrases with 6+ words are very secure")
+        separator = st.selectbox("Word Separator", ["-", "_", ".", " ", ""], key="passphrase_sep",
+                               help="Choose how words are separated in your passphrase")
+        
+        if st.button("📖 Generate Passphrase", key="passphrase_btn", use_container_width=True):
             password = advanced_gen.generate_passphrase(word_count, separator)
             
             if password == "LIMIT_REACHED":
@@ -764,10 +904,10 @@ def main():
                 st.session_state.password_type = "Passphrase"
     
     with tab4:
-        st.header("AI Smart Generator")
-        st.info("AI generates passwords based on security best practices and memorability")
+        st.header("🤖 AI Smart Generator")
+        st.markdown("Get AI-suggested passwords based on security best practices")
         
-        if st.button("Get AI Suggestions", key="ai_btn"):
+        if st.button("🤖 Get AI Suggestions", key="ai_btn", use_container_width=True):
             suggestions = [
                 advanced_gen.ai_generator.generate_memorable_password(4),
                 advanced_gen.generate_password(16, True, True, True, True),
@@ -784,17 +924,17 @@ def main():
                 st.session_state.ai_suggestions = suggestions
         
         if 'ai_suggestions' in st.session_state:
-            st.subheader("AI Suggestions:")
+            st.subheader("🎪 AI Password Suggestions:")
             for i, suggestion in enumerate(st.session_state.ai_suggestions, 1):
                 cols = st.columns([3, 1])
                 with cols[0]:
                     st.code(suggestion, language="text")
                 with cols[1]:
-                    if st.button(f"Use {i}", key=f"ai_use_{i}"):
+                    if st.button(f"Use #{i}", key=f"ai_use_{i}"):
                         st.session_state.generated_password = suggestion
                         st.session_state.password_type = "AI Smart"
     
-    # Display generated password
+    # ========== PASSWORD DISPLAY SECTION ==========
     if 'generated_password' in st.session_state:
         st.markdown("---")
         st.header("🎉 Your Generated Password")
@@ -804,21 +944,16 @@ def main():
         
         col_copy, col_refresh, col_save = st.columns(3)
         with col_copy:
-            if st.button("📋 Copy to Clipboard", key="copy_btn"):
-                st.code(st.session_state.generated_password)
+            if st.button("📋 Copy to Clipboard", key="copy_btn", use_container_width=True):
                 st.success("✅ Password copied to clipboard!")
         with col_refresh:
-            if st.button("🔄 Generate New", key="refresh_btn"):
-                # Store current password type before clearing
-                current_type = st.session_state.get('password_type', 'Random')
-                
+            if st.button("🔄 Generate New", key="refresh_btn", use_container_width=True):
                 # Clear the current password
                 if 'generated_password' in st.session_state:
                     del st.session_state.generated_password
-                
                 st.rerun()
         with col_save:
-            if st.button("💾 Save to History", key="save_btn"):
+            if st.button("💾 Save to History", key="save_btn", use_container_width=True):
                 if 'password_history' not in st.session_state:
                     st.session_state.password_history = []
                 st.session_state.password_history.append({
@@ -828,7 +963,7 @@ def main():
                 })
                 st.success("✅ Password saved to history!")
     
-    # Security Analysis Section
+    # ========== SECURITY ANALYSIS SECTION ==========
     if 'generated_password' in st.session_state:
         st.markdown("---")
         st.header("🔍 Security Analysis")
@@ -859,16 +994,16 @@ def main():
         col_feedback, col_breach = st.columns(2)
         
         with col_feedback:
-            st.subheader("AI Recommendations")
+            st.subheader("🤖 AI Recommendations")
             for feedback in analysis['feedback']:
                 st.write(f"• {feedback}")
         
         with col_breach:
-            st.subheader("Breach Check")
+            st.subheader("🛡️ Breach Check")
             breach_result = check_password_breach(password)
             st.write(breach_result['message'])
             
-            st.subheader("Password Metrics")
+            st.subheader("📊 Password Metrics")
             metrics_col1, metrics_col2 = st.columns(2)
             with metrics_col1:
                 st.write(f"**Length:** {len(password)}")
@@ -879,7 +1014,7 @@ def main():
                 st.write(f"**Special:** {sum(1 for c in password if not c.isalnum())}")
                 st.write(f"**Unique Chars:** {len(set(password))}")
     
-    # Advanced Features Section with premium gates
+    # ========== ADVANCED FEATURES SECTION ==========
     st.markdown("---")
     st.header("🚀 Advanced Tools")
     
@@ -888,8 +1023,6 @@ def main():
     with feat_col1:
         st.markdown('<div class="feature-card">', unsafe_allow_html=True)
         st.subheader("📊 Password History")
-        if 'password_history' not in st.session_state:
-            st.session_state.password_history = []
         
         if st.session_state.premium_user or len(st.session_state.password_history) <= 5:
             if st.session_state.password_history:
@@ -903,7 +1036,7 @@ def main():
         else:
             st.warning("🔒 History limited to 5 entries for free users")
             st.info("Upgrade to Premium for unlimited password history!")
-            if st.button("Unlock History", key="history_upgrade"):
+            if st.button("Unlock History", key="history_upgrade", use_container_width=True):
                 st.session_state.show_pricing = True
         st.markdown('</div>', unsafe_allow_html=True)
     
@@ -915,7 +1048,7 @@ def main():
             max_passwords = 500 if st.session_state.user_plan in ["business", "enterprise"] else 50
             count = st.number_input("Number of passwords", 1, max_passwords, 5, key="bulk_count")
             
-            if st.button("Generate Multiple Passwords", key="bulk_btn"):
+            if st.button("Generate Multiple Passwords", key="bulk_btn", use_container_width=True):
                 bulk_passwords = [
                     advanced_gen.generate_password(16, True, True, True, True)
                     for _ in range(count)
@@ -930,22 +1063,22 @@ def main():
         else:
             st.warning("🔒 Bulk generation is a Premium feature")
             st.info("Upgrade to generate 50+ passwords at once!")
-            if st.button("Unlock Bulk Generation", key="bulk_upgrade"):
+            if st.button("Unlock Bulk Generation", key="bulk_upgrade", use_container_width=True):
                 st.session_state.show_pricing = True
         st.markdown('</div>', unsafe_allow_html=True)
     
     with feat_col3:
         st.markdown('<div class="feature-card">', unsafe_allow_html=True)
         st.subheader("🔐 Policy Checker")
-        st.write("Validate against security policies")
+        st.write("Validate passwords against security policies")
         
-        min_length = st.slider("Min Length", 8, 20, 12, key="policy_length")
+        min_length = st.slider("Minimum Length", 8, 20, 12, key="policy_length")
         require_upper = st.checkbox("Require Uppercase", True, key="policy_upper")
         require_lower = st.checkbox("Require Lowercase", True, key="policy_lower")
         require_digits = st.checkbox("Require Digits", True, key="policy_digits")
-        require_special = st.checkbox("Require Special", True, key="policy_special")
+        require_special = st.checkbox("Require Special Characters", True, key="policy_special")
         
-        if st.button("Validate Current Password", key="policy_btn"):
+        if st.button("Validate Current Password", key="policy_btn", use_container_width=True):
             if 'generated_password' in st.session_state:
                 password = st.session_state.generated_password
                 violations = []
@@ -967,13 +1100,20 @@ def main():
                     st.success("✅ Meets all policy requirements!")
         st.markdown('</div>', unsafe_allow_html=True)
     
-    # Show upgrade CTA at the bottom
+    # ========== UPGRADE CTA SECTION ==========
     if not st.session_state.premium_user:
         st.markdown("---")
         st.markdown("""
-        <div style='text-align: center; padding: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 15px;'>
-            <h2>🚀 Ready to Level Up Your Security?</h2>
-            <p style='font-size: 1.2rem;'>Join thousands of satisfied users who upgraded to Premium</p>
+        <div style='
+            text-align: center; 
+            padding: 40px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+            border-radius: 15px;
+            margin: 2rem 0;
+        '>
+            <h2 style='margin: 0 0 1rem 0;'>🚀 Ready to Level Up Your Security?</h2>
+            <p style='font-size: 1.2rem; margin: 0;'>Join thousands of satisfied users who upgraded to Premium</p>
         </div>
         """, unsafe_allow_html=True)
         
@@ -982,15 +1122,47 @@ def main():
             if st.button("⭐ Upgrade to Premium - Start Free Trial", use_container_width=True, type="primary"):
                 st.session_state.show_pricing = True
     
-    # Footer Section
+    # ========== SEO CONTENT SECTION ==========
     st.markdown("---")
     st.markdown("""
-    <div style='text-align: center; padding: 20px; color: #666;'>
-        <h3>🔐 AI Password Generator Pro</h3>
-        <p>Built with Streamlit • Secure • Trusted by 10,000+ users</p>
-        <p style='font-size: 0.8rem; color: #888;'>
+    ## 🔐 Free Online Password Generator Tool
+    
+    Generate **secure, strong passwords** instantly with our AI-powered password generator. 
+    Create **random passwords**, **memorable passwords**, and **secure passphrases** with real-time strength analysis.
+    
+    ### Why Security Professionals Recommend Our Tool:
+    - ✅ **AI-Powered Security Analysis** - Advanced password strength checking
+    - ✅ **Multiple Generation Methods** - Random, memorable, and passphrase options
+    - ✅ **Real-time Strength Metrics** - Entropy calculation and breach checking
+    - ✅ **Completely Free** - No registration required for basic features
+    - ✅ **Mobile Optimized** - Works on all devices and browsers
+    
+    ### Best Practices for Secure Passwords:
+    1. **Use long passwords** (12+ characters recommended)
+    2. **Mix character types** - uppercase, lowercase, numbers, symbols
+    3. **Avoid common patterns** and dictionary words
+    4. **Use unique passwords** for each account
+    5. **Enable two-factor authentication** when available
+    
+    Our **free password generator tool** helps you create **strong, secure passwords** that protect your online accounts from hackers and brute force attacks. Unlike basic password generators, we provide enterprise-level security analysis to ensure your passwords meet modern security standards.
+    """)
+    
+    # ========== FOOTER SECTION ==========
+    st.markdown("---")
+    st.markdown("""
+    <div style='
+        text-align: center; 
+        padding: 30px; 
+        color: #666;
+        background: #f8f9fa;
+        border-radius: 10px;
+        margin-top: 2rem;
+    '>
+        <h3 style='margin: 0 0 1rem 0;'>🔐 AI Password Generator Pro</h3>
+        <p style='margin: 0 0 1rem 0;'>Built with Streamlit • Secure • Trusted by 10,000+ users</p>
+        <p style='font-size: 0.8rem; color: #888; margin: 0;'>
             © 2024 Password Generator Pro. All rights reserved.<br>
-            Your security is our priority. Passwords are generated locally and never stored.
+            Your security is our priority. Passwords are generated locally and never stored on our servers.
         </p>
     </div>
     """, unsafe_allow_html=True)
