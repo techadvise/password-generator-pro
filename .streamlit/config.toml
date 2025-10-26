@@ -76,16 +76,16 @@ class PasswordGenerator:
             remaining_length = length
             
             # Add required characters
-            if use_lowercase and char_pool:
+            if use_lowercase and self.char_sets['lowercase']:
                 password_chars.append(secrets.choice(self.char_sets['lowercase']))
                 remaining_length -= 1
-            if use_uppercase and char_pool:
+            if use_uppercase and self.char_sets['uppercase']:
                 password_chars.append(secrets.choice(self.char_sets['uppercase']))
                 remaining_length -= 1
-            if use_digits and char_pool:
+            if use_digits and self.char_sets['digits']:
                 password_chars.append(secrets.choice(self.char_sets['digits']))
                 remaining_length -= 1
-            if use_symbols and char_pool:
+            if use_symbols and self.char_sets['symbols']:
                 password_chars.append(secrets.choice(self.char_sets['symbols']))
                 remaining_length -= 1
             
@@ -113,6 +113,7 @@ class AIPasswordGenerator:
     
     def analyze_password_strength(self, password: Optional[str]) -> Dict[str, Any]:
         """Analyze password strength with comprehensive checks"""
+        # First check if password is None or empty
         if password is None:
             return {
                 "strength": "Very Weak",
@@ -124,18 +125,18 @@ class AIPasswordGenerator:
                 "entropy": 0.0
             }
         
-        try:
-            if len(password) < 1:
-                return {
-                    "strength": "Very Weak",
-                    "score": 0,
-                    "feedback": ["Invalid password: Empty password"],
-                    "length_ok": False,
-                    "complexity_ok": False,
-                    "common_pattern_ok": False,
-                    "entropy": 0.0
-                }
+        if not isinstance(password, str) or len(password) == 0:
+            return {
+                "strength": "Very Weak",
+                "score": 0,
+                "feedback": ["Invalid password: Empty or invalid password"],
+                "length_ok": False,
+                "complexity_ok": False,
+                "common_pattern_ok": False,
+                "entropy": 0.0
+            }
 
+        try:
             score = 0
             feedback = []
             
@@ -417,7 +418,7 @@ def render_basic_generator():
                 exclude_ambiguous=exclude_ambiguous
             )
             
-            if password:
+            if password:  # Only analyze if password is not None
                 st.session_state.generated_passwords.append(password)
                 analysis = st.session_state.advanced_gen.ai_generator.analyze_password_strength(password)
                 
@@ -430,6 +431,8 @@ def render_basic_generator():
                 
                 # Save to history
                 st.session_state.password_manager.save_password(password, "Basic Generator")
+            else:
+                st.error("Failed to generate password. Please check your settings.")
 
 def render_advanced_generator():
     """Render advanced password generator interface"""
@@ -459,7 +462,7 @@ def render_advanced_generator():
                     add_number=add_number
                 )
                 
-                if passphrase:
+                if passphrase:  # Only analyze if passphrase is not None
                     st.session_state.generated_passwords.append(passphrase)
                     analysis = st.session_state.advanced_gen.ai_generator.analyze_password_strength(passphrase)
                     
@@ -469,6 +472,8 @@ def render_advanced_generator():
                     display_password_strength(analysis)
                     
                     st.session_state.password_manager.save_password(passphrase, "Passphrase Generator")
+                else:
+                    st.error("Failed to generate passphrase. Please try again.")
     
     with tab2:
         st.subheader("Pronounceable Password")
@@ -479,7 +484,7 @@ def render_advanced_generator():
             with st.spinner("Creating pronounceable password..."):
                 password = st.session_state.advanced_gen.generate_pronounceable_password(length=length)
                 
-                if password:
+                if password:  # Only analyze if password is not None
                     st.session_state.generated_passwords.append(password)
                     analysis = st.session_state.advanced_gen.ai_generator.analyze_password_strength(password)
                     
@@ -489,6 +494,8 @@ def render_advanced_generator():
                     display_password_strength(analysis)
                     
                     st.session_state.password_manager.save_password(password, "Pronounceable Generator")
+                else:
+                    st.error("Failed to generate password. Please try again.")
 
 def render_password_analyzer():
     """Render password analysis interface"""
@@ -626,6 +633,64 @@ def render_export_import():
         Always store passwords in a secure password manager!
         """)
 
+def display_feature_badges():
+    """Display feature badges in a Streamlit-compatible way"""
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown(
+            """
+            <div style='
+                background: linear-gradient(45deg, #667eea, #764ba2);
+                padding: 0.5rem 1rem;
+                border-radius: 25px;
+                text-align: center;
+                color: white;
+                font-weight: bold;
+                margin: 0.5rem 0;
+            '>
+                🎯 Free Tier Available
+            </div>
+            """, 
+            unsafe_allow_html=True
+        )
+    
+    with col2:
+        st.markdown(
+            """
+            <div style='
+                background: linear-gradient(45deg, #f093fb, #f5576c);
+                padding: 0.5rem 1rem;
+                border-radius: 25px;
+                text-align: center;
+                color: white;
+                font-weight: bold;
+                margin: 0.5rem 0;
+            '>
+                🤖 AI-Powered Analysis
+            </div>
+            """, 
+            unsafe_allow_html=True
+        )
+    
+    with col3:
+        st.markdown(
+            """
+            <div style='
+                background: linear-gradient(45deg, #4facfe, #00f2fe);
+                padding: 0.5rem 1rem;
+                border-radius: 25px;
+                text-align: center;
+                color: white;
+                font-weight: bold;
+                margin: 0.5rem 0;
+            '>
+                🔒 Military-Grade Security
+            </div>
+            """, 
+            unsafe_allow_html=True
+        )
+
 def main():
     """Main application function"""
     # Initialize session state
@@ -654,6 +719,9 @@ def main():
     # Main content area
     st.title("🔒 Password Generator Pro")
     st.markdown("Generate secure, random passwords with advanced analysis tools.")
+    
+    # Display feature badges
+    display_feature_badges()
     
     # Render selected page
     if page == "Basic Generator":
