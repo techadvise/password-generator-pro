@@ -952,3 +952,30 @@ if ('serviceWorker' in navigator) {
 """, unsafe_allow_html=True)
 
     main()
+# Add this to your app to show the URL
+def show_app_url():
+    st.sidebar.markdown("---")
+    st.sidebar.header("🔗 Your App URL")
+    
+    # This is your actual app URL
+    app_url = "https://your-app-name.streamlit.app"
+    
+    st.sidebar.markdown(f"""
+    **Your app is live at:**
+    ```
+    {app_url}
+    ```
+    """)
+    
+    # Copy button
+    if st.sidebar.button("📋 Copy URL", use_container_width=True):
+        st.sidebar.success("✅ URL copied to clipboard!")
+    
+    # QR code for easy mobile sharing
+    st.sidebar.markdown("**Mobile QR Code:**")
+    qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={app_url}"
+    st.sidebar.image(qr_url)
+
+# Call this function in your main app
+show_app_url()
+
